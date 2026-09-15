@@ -7,6 +7,10 @@
 # The root password is read from .env, which is generated from
 # src/config.js so the two cannot drift. Both are gitignored.
 #
+# No MYSQL_DATABASE: the service creates the `pizza` schema itself and
+# seeds the default admin (a@jwt.com) only when it does. Pre-creating the
+# schema here silently skips that seed.
+#
 #   docker compose up -d
 
 services:
@@ -15,7 +19,6 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?unset — regenerate .env from src/config.js}
-      MYSQL_DATABASE: pizza
     ports: ["3306:3306"]
     volumes: ["mysql-data:/var/lib/mysql"]
     healthcheck:
