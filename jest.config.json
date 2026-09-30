@@ -2,6 +2,7 @@
   "collectCoverage": true,
   "coverageReporters": ["json-summary", "text"],
   "coveragePathIgnorePatterns": ["/node_modules/", "testHelpers.js"],
+  "setupFilesAfterEnv": ["<rootDir>/jest.setup.js"],
   "coverageThreshold": {
     "global": {
       "lines": 80
