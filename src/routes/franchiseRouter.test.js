@@ -26,6 +26,20 @@ test('create franchise', async () => {
   expect(createRes.body).toMatchObject({ name: franchiseReq.name, admins: [{ id: adminUser.id, name: adminUser.name, email: adminUser.email }] });
 });
 
+test('list franchises', async () => {
+  const franchise = await createFranchise();
+  const listRes = await request(app).get(`/api/franchise?page=0&limit=10&name=${franchise.name}`);
+  expect(listRes.status).toBe(200);
+  expect(listRes.body).toMatchObject({ franchises: [{ id: franchise.id, name: franchise.name }], more: false });
+});
+
+test('list franchises with bad paging', async () => {
+  for (const query of ['limit=abc', 'limit=0', 'limit=101', 'page=-1', 'page=1.5']) {
+    const listRes = await request(app).get(`/api/franchise?${query}`);
+    expect(listRes.status).toBe(400);
+  }
+});
+
 test('delete franchise', async () => {
   const franchise = await createFranchise();
   const deleteRes = await request(app).delete(`/api/franchise/${franchise.id}`).set('Authorization', `Bearer ${adminAuthToken}`);
