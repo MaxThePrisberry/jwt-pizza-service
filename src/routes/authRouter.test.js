@@ -29,6 +29,17 @@ test('login', async () => {
   expect(loginRes.body.user).toMatchObject(expectedUser);
 });
 
+test('edited token is rejected', async () => {
+  const meRes = await request(app).get('/api/user/me').set('Authorization', `Bearer ${testUserAuthToken}`);
+  expect(meRes.status).toBe(200);
+
+  const [header, payload, signature] = testUserAuthToken.split('.');
+  const user = JSON.parse(Buffer.from(payload, 'base64url').toString());
+  const adminPayload = Buffer.from(JSON.stringify({ ...user, roles: [{ role: 'admin' }] })).toString('base64url');
+  const editedRes = await request(app).get('/api/user/me').set('Authorization', `Bearer ${header}.${adminPayload}.${signature}`);
+  expect(editedRes.status).toBe(401);
+});
+
 test('logout', async () => {
   const loginRes = await request(app).put('/api/auth').send(testUser);
   const authToken = loginRes.body.token;
