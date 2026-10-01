@@ -78,6 +78,10 @@ orderRouter.post(
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const orderReq = req.body;
+    if (orderReq.franchiseId === undefined || orderReq.storeId === undefined || !Array.isArray(orderReq.items) || orderReq.items.length === 0 || orderReq.items.some((item) => item?.menuId === undefined)) {
+      throw new StatusCodeError('franchiseId, storeId, and items are required', 400);
+    }
+
     const order = await DB.addDinerOrder(req.user, orderReq);
     const r = await fetch(`${config.factory.url}/api/order`, {
       method: 'POST',

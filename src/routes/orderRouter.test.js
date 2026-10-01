@@ -53,8 +53,26 @@ test('create order uses menu price', async () => {
 });
 
 test('create order with unknown menu item', async () => {
-  const orderReq = { franchiseId: franchise.id, storeId: store.id, items: [{ menuId: 0, description: 'missing pizza', price: 0 }] };
-  const orderRes = await request(app).post('/api/order').set('Authorization', `Bearer ${dinerAuthToken}`).send(orderReq);
+  const newStore = await createStore();
+  const items = [{ menuId: menuItem.id, description: menuItem.title, price: menuItem.price }, { menuId: 0, description: 'missing pizza', price: 0 }];
+  const orderRes = await request(app).post('/api/order').set('Authorization', `Bearer ${dinerAuthToken}`).send({ franchiseId: franchise.id, storeId: newStore.id, items });
+  expect(orderRes.status).toBe(404);
+  expect(global.fetch).not.toHaveBeenCalled();
+  expect(await storeRevenue(newStore.id)).toBe(0);
+});
+
+test('create order without franchise, store, or items', async () => {
+  const items = [{ menuId: menuItem.id, description: menuItem.title, price: menuItem.price }];
+  for (const orderReq of [{ storeId: store.id, items }, { franchiseId: franchise.id, items }, { franchiseId: franchise.id, storeId: store.id }, { franchiseId: franchise.id, storeId: store.id, items: [] }, { franchiseId: franchise.id, storeId: store.id, items: [{}] }]) {
+    const orderRes = await request(app).post('/api/order').set('Authorization', `Bearer ${dinerAuthToken}`).send(orderReq);
+    expect(orderRes.status).toBe(400);
+  }
+  expect(global.fetch).not.toHaveBeenCalled();
+});
+
+test('create order for unknown store', async () => {
+  const items = [{ menuId: menuItem.id, description: menuItem.title, price: menuItem.price }];
+  const orderRes = await request(app).post('/api/order').set('Authorization', `Bearer ${dinerAuthToken}`).send({ franchiseId: franchise.id, storeId: 0, items });
   expect(orderRes.status).toBe(404);
   expect(global.fetch).not.toHaveBeenCalled();
 });
