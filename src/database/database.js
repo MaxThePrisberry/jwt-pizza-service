@@ -180,6 +180,23 @@ class DB {
     }
   }
 
+  async deleteDinerOrder(orderId) {
+    const connection = await this.getConnection();
+    try {
+      await connection.beginTransaction();
+      try {
+        await this.query(connection, `DELETE FROM orderItem WHERE orderId=?`, [orderId]);
+        await this.query(connection, `DELETE FROM dinerOrder WHERE id=?`, [orderId]);
+        await connection.commit();
+      } catch (err) {
+        await connection.rollback();
+        throw err;
+      }
+    } finally {
+      connection.end();
+    }
+  }
+
   async createFranchise(franchise) {
     const connection = await this.getConnection();
     try {

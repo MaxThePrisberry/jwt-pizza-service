@@ -77,6 +77,24 @@ test('create order for unknown store', async () => {
   expect(global.fetch).not.toHaveBeenCalled();
 });
 
+test('create order when factory fails', async () => {
+  global.fetch = jest.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ reportUrl: 'factoryreport' }) }));
+  const authToken = await registerDiner();
+  const items = [{ menuId: menuItem.id, description: menuItem.title, price: menuItem.price }];
+  const orderRes = await request(app).post('/api/order').set('Authorization', `Bearer ${authToken}`).send({ franchiseId: franchise.id, storeId: store.id, items });
+  expect(orderRes.status).toBe(500);
+  expect(orderRes.body).toEqual({ message: 'Failed to fulfill order at factory', followLinkToEndChaos: 'factoryreport' });
+
+  const ordersRes = await request(app).get('/api/order').set('Authorization', `Bearer ${authToken}`);
+  expect(ordersRes.body.orders).toEqual([]);
+});
+
+async function registerDiner() {
+  const registerRes = await request(app).post('/api/auth').send({ name: 'pizza diner', email: randomName() + '@test.com', password: 'a' });
+  expectValidJwt(registerRes.body.token);
+  return registerRes.body.token;
+}
+
 async function createStore() {
   const storeRes = await request(app).post(`/api/franchise/${franchise.id}/store`).set('Authorization', `Bearer ${adminAuthToken}`).send({ name: randomName() });
   expect(storeRes.status).toBe(200);
