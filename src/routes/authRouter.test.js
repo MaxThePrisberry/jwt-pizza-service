@@ -28,3 +28,16 @@ test('login', async () => {
   delete expectedUser.password;
   expect(loginRes.body.user).toMatchObject(expectedUser);
 });
+
+test('logout', async () => {
+  const loginRes = await request(app).put('/api/auth').send(testUser);
+  const authToken = loginRes.body.token;
+  expectValidJwt(authToken);
+
+  const logoutRes = await request(app).delete('/api/auth').set('Authorization', `Bearer ${authToken}`);
+  expect(logoutRes.status).toBe(200);
+  expect(logoutRes.body).toEqual({ message: 'logout successful' });
+
+  const meRes = await request(app).get('/api/user/me').set('Authorization', `Bearer ${authToken}`);
+  expect(meRes.status).toBe(401);
+});
