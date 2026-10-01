@@ -87,6 +87,20 @@ test('delete franchise as diner', async () => {
   expect(deleteRes.status).toBe(403);
 });
 
+test('create store', async () => {
+  const franchise = await createFranchise();
+  const storeReq = { name: randomName() };
+  const createRes = await request(app).post(`/api/franchise/${franchise.id}/store`).set('Authorization', `Bearer ${adminAuthToken}`).send(storeReq);
+  expect(createRes.status).toBe(200);
+  expect(createRes.body).toMatchObject({ franchiseId: franchise.id, name: storeReq.name });
+});
+
+test('create store as diner', async () => {
+  const franchise = await createFranchise();
+  const createRes = await request(app).post(`/api/franchise/${franchise.id}/store`).set('Authorization', `Bearer ${dinerAuthToken}`).send({ name: randomName() });
+  expect(createRes.status).toBe(403);
+});
+
 test('create store for unknown franchise', async () => {
   const franchiseId = await deletedFranchiseId();
   const createRes = await request(app).post(`/api/franchise/${franchiseId}/store`).set('Authorization', `Bearer ${adminAuthToken}`).send({ name: randomName() });
