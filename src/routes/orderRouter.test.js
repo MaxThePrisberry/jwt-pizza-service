@@ -89,6 +89,19 @@ test('create order when factory fails', async () => {
   expect(ordersRes.body.orders).toEqual([]);
 });
 
+test('create order when factory times out', async () => {
+  global.fetch = jest.fn(() => Promise.reject(new DOMException('The operation was aborted due to timeout', 'TimeoutError')));
+  const authToken = await registerDiner();
+  const items = [{ menuId: menuItem.id, description: menuItem.title, price: menuItem.price }];
+  const orderRes = await request(app).post('/api/order').set('Authorization', `Bearer ${authToken}`).send({ franchiseId: franchise.id, storeId: store.id, items });
+  expect(orderRes.status).toBe(500);
+  expect(orderRes.body).toEqual({ message: 'Failed to fulfill order at factory' });
+  expect(global.fetch.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
+
+  const ordersRes = await request(app).get('/api/order').set('Authorization', `Bearer ${authToken}`);
+  expect(ordersRes.body.orders).toEqual([]);
+});
+
 async function registerDiner() {
   const registerRes = await request(app).post('/api/auth').send({ name: 'pizza diner', email: randomName() + '@test.com', password: 'a' });
   expectValidJwt(registerRes.body.token);

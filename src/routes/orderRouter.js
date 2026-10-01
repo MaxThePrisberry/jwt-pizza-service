@@ -83,19 +83,28 @@ orderRouter.post(
     }
 
     const order = await DB.addDinerOrder(req.user, orderReq);
-    const r = await fetch(`${config.factory.url}/api/order`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', authorization: `Bearer ${config.factory.apiKey}` },
-      body: JSON.stringify({ diner: { id: req.user.id, name: req.user.name, email: req.user.email }, order }),
-    });
-    const j = await r.json();
-    if (r.ok) {
-      res.send({ order, followLinkToEndChaos: j.reportUrl, jwt: j.jwt });
+    const factoryRes = await sendToFactory(req.user, order);
+    if (factoryRes?.ok) {
+      res.send({ order, followLinkToEndChaos: factoryRes.body.reportUrl, jwt: factoryRes.body.jwt });
     } else {
       await DB.deleteDinerOrder(order.id);
-      res.status(500).send({ message: 'Failed to fulfill order at factory', followLinkToEndChaos: j.reportUrl });
+      res.status(500).send({ message: 'Failed to fulfill order at factory', followLinkToEndChaos: factoryRes?.body.reportUrl });
     }
   })
 );
+
+async function sendToFactory(user, order) {
+  try {
+    const r = await fetch(`${config.factory.url}/api/order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', authorization: `Bearer ${config.factory.apiKey}` },
+      body: JSON.stringify({ diner: { id: user.id, name: user.name, email: user.email }, order }),
+      signal: AbortSignal.timeout(10 * 1000),
+    });
+    return { ok: r.ok, body: await r.json() };
+  } catch {
+    return null;
+  }
+}
 
 module.exports = orderRouter;
