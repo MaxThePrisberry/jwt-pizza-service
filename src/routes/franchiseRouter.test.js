@@ -2,10 +2,17 @@ const request = require('supertest');
 const app = require('../service');
 const { randomName, createAdminUser, expectValidJwt } = require('../testHelpers');
 
+const dinerUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
+let dinerAuthToken;
 let adminUser;
 let adminAuthToken;
 
 beforeAll(async () => {
+  dinerUser.email = randomName() + '@test.com';
+  const registerRes = await request(app).post('/api/auth').send(dinerUser);
+  dinerAuthToken = registerRes.body.token;
+  expectValidJwt(dinerAuthToken);
+
   adminUser = await createAdminUser();
   const loginRes = await request(app).put('/api/auth').send(adminUser);
   adminAuthToken = loginRes.body.token;
@@ -18,3 +25,32 @@ test('create franchise', async () => {
   expect(createRes.status).toBe(200);
   expect(createRes.body).toMatchObject({ name: franchiseReq.name, admins: [{ id: adminUser.id, name: adminUser.name, email: adminUser.email }] });
 });
+
+test('delete franchise', async () => {
+  const franchise = await createFranchise();
+  const deleteRes = await request(app).delete(`/api/franchise/${franchise.id}`).set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(deleteRes.status).toBe(200);
+  expect(deleteRes.body).toEqual({ message: 'franchise deleted' });
+
+  const listRes = await request(app).get(`/api/franchise?name=${franchise.name}`);
+  expect(listRes.body.franchises).toEqual([]);
+});
+
+test('delete franchise without auth', async () => {
+  const franchise = await createFranchise();
+  const deleteRes = await request(app).delete(`/api/franchise/${franchise.id}`);
+  expect(deleteRes.status).toBe(401);
+});
+
+test('delete franchise as diner', async () => {
+  const franchise = await createFranchise();
+  const deleteRes = await request(app).delete(`/api/franchise/${franchise.id}`).set('Authorization', `Bearer ${dinerAuthToken}`);
+  expect(deleteRes.status).toBe(403);
+});
+
+async function createFranchise() {
+  const franchiseReq = { name: randomName(), admins: [{ email: adminUser.email }] };
+  const createRes = await request(app).post('/api/franchise').set('Authorization', `Bearer ${adminAuthToken}`).send(franchiseReq);
+  expect(createRes.status).toBe(200);
+  return createRes.body;
+}
