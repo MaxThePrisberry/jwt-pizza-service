@@ -33,6 +33,12 @@ test('create franchise without name or admins', async () => {
   }
 });
 
+test('create franchise as diner', async () => {
+  const franchiseReq = { name: randomName(), admins: [{ email: adminUser.email }] };
+  const createRes = await request(app).post('/api/franchise').set('Authorization', `Bearer ${dinerAuthToken}`).send(franchiseReq);
+  expect(createRes.status).toBe(403);
+});
+
 test('list franchises', async () => {
   const franchise = await createFranchise();
   const listRes = await request(app).get(`/api/franchise?page=0&limit=10&name=${franchise.name}`);
