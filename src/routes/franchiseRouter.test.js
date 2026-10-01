@@ -26,6 +26,13 @@ test('create franchise', async () => {
   expect(createRes.body).toMatchObject({ name: franchiseReq.name, admins: [{ id: adminUser.id, name: adminUser.name, email: adminUser.email }] });
 });
 
+test('create franchise without name or admins', async () => {
+  for (const franchiseReq of [{ name: randomName() }, { admins: [{ email: adminUser.email }] }]) {
+    const createRes = await request(app).post('/api/franchise').set('Authorization', `Bearer ${adminAuthToken}`).send(franchiseReq);
+    expect(createRes.status).toBe(400);
+  }
+});
+
 test('list franchises', async () => {
   const franchise = await createFranchise();
   const listRes = await request(app).get(`/api/franchise?page=0&limit=10&name=${franchise.name}`);

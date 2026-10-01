@@ -95,6 +95,10 @@ franchiseRouter.post(
     }
 
     const franchise = req.body;
+    if (!franchise.name || !Array.isArray(franchise.admins)) {
+      throw new StatusCodeError('name and admins are required', 400);
+    }
+
     res.send(await DB.createFranchise(franchise));
   })
 );
