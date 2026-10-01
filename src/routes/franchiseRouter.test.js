@@ -101,6 +101,24 @@ test('create store as diner', async () => {
   expect(createRes.status).toBe(403);
 });
 
+test('delete store', async () => {
+  const franchise = await createFranchise();
+  const store = await createStore(franchise);
+  const deleteRes = await request(app).delete(`/api/franchise/${franchise.id}/store/${store.id}`).set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(deleteRes.status).toBe(200);
+  expect(deleteRes.body).toEqual({ message: 'store deleted' });
+
+  const listRes = await request(app).get(`/api/franchise?name=${franchise.name}`);
+  expect(listRes.body.franchises[0].stores).toEqual([]);
+});
+
+test('delete store as diner', async () => {
+  const franchise = await createFranchise();
+  const store = await createStore(franchise);
+  const deleteRes = await request(app).delete(`/api/franchise/${franchise.id}/store/${store.id}`).set('Authorization', `Bearer ${dinerAuthToken}`);
+  expect(deleteRes.status).toBe(403);
+});
+
 test('create store for unknown franchise', async () => {
   const franchiseId = await deletedFranchiseId();
   const createRes = await request(app).post(`/api/franchise/${franchiseId}/store`).set('Authorization', `Bearer ${adminAuthToken}`).send({ name: randomName() });
@@ -118,6 +136,12 @@ async function deletedFranchiseId() {
   const deleteRes = await request(app).delete(`/api/franchise/${franchise.id}`).set('Authorization', `Bearer ${adminAuthToken}`);
   expect(deleteRes.status).toBe(200);
   return franchise.id;
+}
+
+async function createStore(franchise) {
+  const createRes = await request(app).post(`/api/franchise/${franchise.id}/store`).set('Authorization', `Bearer ${adminAuthToken}`).send({ name: randomName() });
+  expect(createRes.status).toBe(200);
+  return createRes.body;
 }
 
 async function createFranchise() {
