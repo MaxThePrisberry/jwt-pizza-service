@@ -69,6 +69,25 @@ test('delete franchise as diner', async () => {
   expect(deleteRes.status).toBe(403);
 });
 
+test('create store for unknown franchise', async () => {
+  const franchiseId = await deletedFranchiseId();
+  const createRes = await request(app).post(`/api/franchise/${franchiseId}/store`).set('Authorization', `Bearer ${adminAuthToken}`).send({ name: randomName() });
+  expect(createRes.status).toBe(404);
+});
+
+test('delete store for unknown franchise', async () => {
+  const franchiseId = await deletedFranchiseId();
+  const deleteRes = await request(app).delete(`/api/franchise/${franchiseId}/store/1`).set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(deleteRes.status).toBe(404);
+});
+
+async function deletedFranchiseId() {
+  const franchise = await createFranchise();
+  const deleteRes = await request(app).delete(`/api/franchise/${franchise.id}`).set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(deleteRes.status).toBe(200);
+  return franchise.id;
+}
+
 async function createFranchise() {
   const franchiseReq = { name: randomName(), admins: [{ email: adminUser.email }] };
   const createRes = await request(app).post('/api/franchise').set('Authorization', `Bearer ${adminAuthToken}`).send(franchiseReq);
