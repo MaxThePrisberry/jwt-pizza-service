@@ -150,11 +150,16 @@ class DB {
     try {
       const orderResult = await this.query(connection, `INSERT INTO dinerOrder (dinerId, franchiseId, storeId, date) VALUES (?, ?, ?, now())`, [user.id, order.franchiseId, order.storeId]);
       const orderId = orderResult.insertId;
+      const items = [];
       for (const item of order.items) {
-        const menuId = await this.getID(connection, 'id', item.menuId, 'menu');
-        await this.query(connection, `INSERT INTO orderItem (orderId, menuId, description, price) VALUES (?, ?, ?, ?)`, [orderId, menuId, item.description, item.price]);
+        const [menuItem] = await this.query(connection, `SELECT id, title, price FROM menu WHERE id=?`, [item.menuId]);
+        if (!menuItem) {
+          throw new StatusCodeError('unknown menu item', 404);
+        }
+        await this.query(connection, `INSERT INTO orderItem (orderId, menuId, description, price) VALUES (?, ?, ?, ?)`, [orderId, menuItem.id, menuItem.title, menuItem.price]);
+        items.push({ menuId: menuItem.id, description: menuItem.title, price: menuItem.price });
       }
-      return { ...order, id: orderId };
+      return { ...order, items, id: orderId };
     } finally {
       connection.end();
     }

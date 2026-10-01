@@ -42,3 +42,30 @@ test('create order', async () => {
   expect(orderRes.body).toMatchObject({ order: orderReq, followLinkToEndChaos: 'factoryreport', jwt: 'factoryjwt' });
   expect(global.fetch).toHaveBeenCalledWith(`${config.factory.url}/api/order`, expect.objectContaining({ method: 'POST' }));
 });
+
+test('create order uses menu price', async () => {
+  const newStore = await createStore();
+  const orderReq = { franchiseId: franchise.id, storeId: newStore.id, items: [{ menuId: menuItem.id, description: 'free pizza', price: 0 }] };
+  const orderRes = await request(app).post('/api/order').set('Authorization', `Bearer ${dinerAuthToken}`).send(orderReq);
+  expect(orderRes.status).toBe(200);
+  expect(orderRes.body.order.items).toEqual([{ menuId: menuItem.id, description: menuItem.title, price: menuItem.price }]);
+  expect(await storeRevenue(newStore.id)).toBe(menuItem.price);
+});
+
+test('create order with unknown menu item', async () => {
+  const orderReq = { franchiseId: franchise.id, storeId: store.id, items: [{ menuId: 0, description: 'missing pizza', price: 0 }] };
+  const orderRes = await request(app).post('/api/order').set('Authorization', `Bearer ${dinerAuthToken}`).send(orderReq);
+  expect(orderRes.status).toBe(404);
+  expect(global.fetch).not.toHaveBeenCalled();
+});
+
+async function createStore() {
+  const storeRes = await request(app).post(`/api/franchise/${franchise.id}/store`).set('Authorization', `Bearer ${adminAuthToken}`).send({ name: randomName() });
+  expect(storeRes.status).toBe(200);
+  return storeRes.body;
+}
+
+async function storeRevenue(storeId) {
+  const listRes = await request(app).get(`/api/franchise?name=${franchise.name}`).set('Authorization', `Bearer ${adminAuthToken}`);
+  return listRes.body.franchises[0].stores.find((s) => s.id === storeId).totalRevenue;
+}
