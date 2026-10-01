@@ -31,8 +31,11 @@ beforeAll(async () => {
   store = storeRes.body;
 });
 
-test('create order', async () => {
+beforeEach(() => {
   global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ jwt: 'factoryjwt', reportUrl: 'factoryreport' }) }));
+});
+
+test('create order', async () => {
   const orderReq = { franchiseId: franchise.id, storeId: store.id, items: [{ menuId: menuItem.id, description: menuItem.title, price: menuItem.price }] };
   const orderRes = await request(app).post('/api/order').set('Authorization', `Bearer ${dinerAuthToken}`).send(orderReq);
   expect(orderRes.status).toBe(200);
