@@ -75,13 +75,12 @@ franchiseRouter.get(
   '/:userId',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    let result = [];
     const userId = Number(req.params.userId);
-    if (req.user.id === userId || req.user.isRole(Role.Admin)) {
-      result = await DB.getUserFranchises(userId);
+    if (req.user.id !== userId && !req.user.isRole(Role.Admin)) {
+      throw new StatusCodeError('unable to list franchises', 403);
     }
 
-    res.json(result);
+    res.json(await DB.getUserFranchises(userId));
   })
 );
 

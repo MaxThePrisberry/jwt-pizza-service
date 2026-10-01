@@ -60,6 +60,11 @@ test('list user franchises', async () => {
   expect(listRes.body).toContainEqual(expect.objectContaining({ id: franchise.id, name: franchise.name }));
 });
 
+test('list another user franchises as diner', async () => {
+  const listRes = await request(app).get(`/api/franchise/${adminUser.id}`).set('Authorization', `Bearer ${dinerAuthToken}`);
+  expect(listRes.status).toBe(403);
+});
+
 test('delete franchise', async () => {
   const franchise = await createFranchise();
   const deleteRes = await request(app).delete(`/api/franchise/${franchise.id}`).set('Authorization', `Bearer ${adminAuthToken}`);
