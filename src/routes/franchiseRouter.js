@@ -112,6 +112,10 @@ franchiseRouter.delete(
     }
 
     const franchiseId = Number(req.params.franchiseId);
+    if (!Number.isInteger(franchiseId) || franchiseId < 1) {
+      throw new StatusCodeError('invalid franchise id', 400);
+    }
+
     await DB.deleteFranchise(franchiseId);
     res.json({ message: 'franchise deleted' });
   })

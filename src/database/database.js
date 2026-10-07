@@ -228,7 +228,7 @@ class DB {
       await connection.beginTransaction();
       try {
         await this.query(connection, `DELETE FROM store WHERE franchiseId=?`, [franchiseId]);
-        await this.query(connection, `DELETE FROM userRole WHERE objectId=?`, [franchiseId]);
+        await this.query(connection, `DELETE FROM userRole WHERE objectId=? AND role='franchisee'`, [franchiseId]);
         await this.query(connection, `DELETE FROM franchise WHERE id=?`, [franchiseId]);
         await connection.commit();
       } catch {

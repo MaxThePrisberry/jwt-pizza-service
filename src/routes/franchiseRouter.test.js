@@ -87,6 +87,16 @@ test('delete franchise as diner', async () => {
   expect(deleteRes.status).toBe(403);
 });
 
+test('delete franchise with invalid id', async () => {
+  for (const franchiseId of ['abc', '0', '-1', '1.5']) {
+    const deleteRes = await request(app).delete(`/api/franchise/${franchiseId}`).set('Authorization', `Bearer ${adminAuthToken}`);
+    expect(deleteRes.status).toBe(400);
+  }
+
+  const loginRes = await request(app).put('/api/auth').send(dinerUser);
+  expect(loginRes.body.user.roles).toEqual([{ role: 'diner' }]);
+});
+
 test('create store', async () => {
   const franchise = await createFranchise();
   const storeReq = { name: randomName() };
