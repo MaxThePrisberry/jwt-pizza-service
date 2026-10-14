@@ -49,6 +49,7 @@ test('update another user as admin', async () => {
   const updateRes = await request(app).put(`/api/user/${user.id}`).set('Authorization', `Bearer ${adminAuthToken}`).send(updateReq);
   expect(updateRes.status).toBe(200);
   expect(updateRes.body.user).toMatchObject({ id: user.id, name: updateReq.name, email: updateReq.email });
+  expect(updateRes.body.token).toBeUndefined();
 });
 
 test('update name with an apostrophe', async () => {
