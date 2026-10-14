@@ -29,6 +29,13 @@ test('login', async () => {
   expect(loginRes.body.user).toMatchObject(expectedUser);
 });
 
+test('login without email or password', async () => {
+  for (const user of [{ email: testUser.email }, { password: testUser.password }]) {
+    const loginRes = await request(app).put('/api/auth').send(user);
+    expect(loginRes.status).toBe(400);
+  }
+});
+
 test('edited token is rejected', async () => {
   const meRes = await request(app).get('/api/user/me').set('Authorization', `Bearer ${testUserAuthToken}`);
   expect(meRes.status).toBe(200);
