@@ -101,6 +101,9 @@ class DB {
         await this.query(connection, `UPDATE user SET ${fields.join(', ')} WHERE id=?`, values);
       }
       const [user] = await this.query(connection, `SELECT * FROM user WHERE id=?`, [userId]);
+      if (!user) {
+        throw new StatusCodeError('unknown user', 404);
+      }
       return await this.getUserWithRoles(connection, user);
     } finally {
       connection.end();
