@@ -51,6 +51,14 @@ test('update another user as admin', async () => {
   expect(updateRes.body.user).toMatchObject({ id: user.id, name: updateReq.name, email: updateReq.email });
 });
 
+test('update name with an apostrophe', async () => {
+  const { user, authToken } = await registerUser();
+  const updateReq = { name: "O'Brien", email: user.email, password: 'a' };
+  const updateRes = await request(app).put(`/api/user/${user.id}`).set('Authorization', `Bearer ${authToken}`).send(updateReq);
+  expect(updateRes.status).toBe(200);
+  expect(updateRes.body.user.name).toBe("O'Brien");
+});
+
 async function registerUser() {
   const registerRes = await request(app).post('/api/auth').send({ name: 'pizza diner', email: randomName() + '@test.com', password: 'a' });
   expectValidJwt(registerRes.body.token);
