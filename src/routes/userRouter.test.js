@@ -66,6 +66,11 @@ test('update only the name', async () => {
   expect(updateRes.body.user).toMatchObject({ id: user.id, name: 'pizza dinerx', email: user.email });
 });
 
+test('update unknown user as admin', async () => {
+  const updateRes = await request(app).put('/api/user/999999999').set('Authorization', `Bearer ${adminAuthToken}`).send({ name: randomName() });
+  expect(updateRes.status).toBe(404);
+});
+
 async function registerUser() {
   const registerRes = await request(app).post('/api/auth').send({ name: 'pizza diner', email: randomName() + '@test.com', password: 'a' });
   expectValidJwt(registerRes.body.token);
