@@ -96,7 +96,12 @@ class DB {
         values.push(userId);
         await this.query(connection, `UPDATE user SET ${fields.join(', ')} WHERE id=?`, values);
       }
-      return this.getUser(email, password);
+      const [user] = await this.query(connection, `SELECT * FROM user WHERE id=?`, [userId]);
+      const roleResult = await this.query(connection, `SELECT * FROM userRole WHERE userId=?`, [user.id]);
+      const roles = roleResult.map((r) => {
+        return { objectId: r.objectId || undefined, role: r.role };
+      });
+      return { ...user, roles: roles, password: undefined };
     } finally {
       connection.end();
     }
