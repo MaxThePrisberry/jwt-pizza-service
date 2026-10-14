@@ -46,6 +46,9 @@ userRouter.put(
     }
 
     const updatedUser = await DB.updateUser(userId, name, email, password);
+    if (user.id !== userId) {
+      return res.json({ user: updatedUser });
+    }
     const auth = await setAuth(updatedUser);
     res.json({ user: updatedUser, token: auth });
   })
