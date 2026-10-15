@@ -110,6 +110,15 @@ test('list users by partial name in pages', async () => {
   expect(secondPageRes.body).toMatchObject({ users: [{ id: secondUser.id }], more: false });
 });
 
+test('delete user without admin', async () => {
+  const { user } = await registerUser();
+  const unauthorizedRes = await request(app).delete(`/api/user/${user.id}`);
+  expect(unauthorizedRes.status).toBe(401);
+
+  const dinerRes = await request(app).delete(`/api/user/${user.id}`).set('Authorization', `Bearer ${dinerAuthToken}`);
+  expect(dinerRes.status).toBe(403);
+});
+
 test('update name with an apostrophe', async () => {
   const { user, authToken } = await registerUser();
   const updateReq = { name: "O'Brien", email: user.email, password: 'a' };
