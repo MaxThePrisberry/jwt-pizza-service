@@ -110,11 +110,12 @@ class DB {
     }
   }
 
-  async getUsers(page, limit) {
+  async getUsers(page, limit, nameFilter = '*') {
     const connection = await this.getConnection();
     try {
       const offset = page * limit;
-      let users = await this.query(connection, `SELECT id, name, email FROM user ORDER BY id LIMIT ${limit + 1} OFFSET ${offset}`);
+      nameFilter = nameFilter.replace(/\*/g, '%');
+      let users = await this.query(connection, `SELECT id, name, email FROM user WHERE name LIKE ? ORDER BY id LIMIT ${limit + 1} OFFSET ${offset}`, [nameFilter]);
 
       const more = users.length > limit;
       if (more) {

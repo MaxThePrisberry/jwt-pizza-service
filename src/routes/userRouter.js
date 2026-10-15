@@ -80,7 +80,7 @@ userRouter.get(
       throw new StatusCodeError('unable to list users', 403);
     }
     const { page, limit } = readPaging(req);
-    const [users, more] = await DB.getUsers(page, limit);
+    const [users, more] = await DB.getUsers(page, limit, req.query.name);
     res.json({ users, more });
   })
 );
