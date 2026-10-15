@@ -1,7 +1,7 @@
 const express = require('express');
 const { DB, Role } = require('../database/database.js');
 const { authRouter } = require('./authRouter.js');
-const { StatusCodeError, asyncHandler } = require('../endpointHelper.js');
+const { StatusCodeError, asyncHandler, readPaging } = require('../endpointHelper.js');
 
 const franchiseRouter = express.Router();
 
@@ -59,12 +59,7 @@ franchiseRouter.docs = [
 franchiseRouter.get(
   '/',
   asyncHandler(async (req, res) => {
-    const page = Number(req.query.page ?? 0);
-    const limit = Number(req.query.limit ?? 10);
-    if (!Number.isInteger(page) || page < 0 || !Number.isInteger(limit) || limit < 1 || limit > 100) {
-      throw new StatusCodeError('invalid page or limit', 400);
-    }
-
+    const { page, limit } = readPaging(req);
     const [franchises, more] = await DB.getFranchises(req.user, page, limit, req.query.name);
     res.json({ franchises, more });
   })
