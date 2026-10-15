@@ -84,6 +84,13 @@ test('list users in pages', async () => {
   expect(secondPageRes.body.users[0].id).not.toBe(firstPageRes.body.users[0].id);
 });
 
+test('list users with bad paging', async () => {
+  for (const query of ['limit=abc', 'limit=0', 'limit=101', 'page=-1', 'page=1.5']) {
+    const listUsersRes = await request(app).get(`/api/user?${query}`).set('Authorization', `Bearer ${adminAuthToken}`);
+    expect(listUsersRes.status).toBe(400);
+  }
+});
+
 test('update name with an apostrophe', async () => {
   const { user, authToken } = await registerUser();
   const updateReq = { name: "O'Brien", email: user.email, password: 'a' };
