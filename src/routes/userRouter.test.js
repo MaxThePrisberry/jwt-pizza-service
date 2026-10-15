@@ -52,6 +52,11 @@ test('update another user as admin', async () => {
   expect(updateRes.body.token).toBeUndefined();
 });
 
+test('list users unauthorized', async () => {
+  const listUsersRes = await request(app).get('/api/user');
+  expect(listUsersRes.status).toBe(401);
+});
+
 test('update name with an apostrophe', async () => {
   const { user, authToken } = await registerUser();
   const updateReq = { name: "O'Brien", email: user.email, password: 'a' };
