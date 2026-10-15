@@ -91,6 +91,13 @@ test('list users with bad paging', async () => {
   }
 });
 
+test('list users by name', async () => {
+  const { user } = await registerUser(randomName());
+  const listUsersRes = await request(app).get(`/api/user?name=${user.name}`).set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(listUsersRes.status).toBe(200);
+  expect(listUsersRes.body).toEqual({ users: [{ id: user.id, name: user.name, email: user.email, roles: [{ role: 'diner' }] }], more: false });
+});
+
 test('update name with an apostrophe', async () => {
   const { user, authToken } = await registerUser();
   const updateReq = { name: "O'Brien", email: user.email, password: 'a' };
@@ -111,8 +118,8 @@ test('update unknown user as admin', async () => {
   expect(updateRes.status).toBe(404);
 });
 
-async function registerUser() {
-  const registerRes = await request(app).post('/api/auth').send({ name: 'pizza diner', email: randomName() + '@test.com', password: 'a' });
+async function registerUser(name = 'pizza diner') {
+  const registerRes = await request(app).post('/api/auth').send({ name, email: randomName() + '@test.com', password: 'a' });
   expectValidJwt(registerRes.body.token);
   return { user: registerRes.body.user, authToken: registerRes.body.token };
 }
