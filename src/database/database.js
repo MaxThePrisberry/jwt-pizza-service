@@ -110,15 +110,22 @@ class DB {
     }
   }
 
-  async getUsers() {
+  async getUsers(page, limit) {
     const connection = await this.getConnection();
     try {
-      const users = await this.query(connection, `SELECT id, name, email FROM user LIMIT 10`);
+      const offset = page * limit;
+      let users = await this.query(connection, `SELECT id, name, email FROM user ORDER BY id LIMIT ${limit + 1} OFFSET ${offset}`);
+
+      const more = users.length > limit;
+      if (more) {
+        users = users.slice(0, limit);
+      }
+
       const usersWithRoles = [];
       for (const user of users) {
         usersWithRoles.push(await this.getUserWithRoles(connection, user));
       }
-      return [usersWithRoles, false];
+      return [usersWithRoles, more];
     } finally {
       connection.end();
     }
