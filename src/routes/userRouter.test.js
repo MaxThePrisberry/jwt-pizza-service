@@ -62,6 +62,16 @@ test('list users as diner', async () => {
   expect(listUsersRes.status).toBe(403);
 });
 
+test('list users', async () => {
+  const listUsersRes = await request(app).get('/api/user').set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(listUsersRes.status).toBe(200);
+  expect(listUsersRes.body).toEqual({ users: expect.any(Array), more: expect.any(Boolean) });
+  expect(listUsersRes.body.users.length).toBeGreaterThan(0);
+  for (const user of listUsersRes.body.users) {
+    expect(user).toEqual({ id: expect.any(Number), name: expect.any(String), email: expect.any(String), roles: expect.any(Array) });
+  }
+});
+
 test('update name with an apostrophe', async () => {
   const { user, authToken } = await registerUser();
   const updateReq = { name: "O'Brien", email: user.email, password: 'a' };
