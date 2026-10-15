@@ -57,6 +57,11 @@ test('list users unauthorized', async () => {
   expect(listUsersRes.status).toBe(401);
 });
 
+test('list users as diner', async () => {
+  const listUsersRes = await request(app).get('/api/user').set('Authorization', `Bearer ${dinerAuthToken}`);
+  expect(listUsersRes.status).toBe(403);
+});
+
 test('update name with an apostrophe', async () => {
   const { user, authToken } = await registerUser();
   const updateReq = { name: "O'Brien", email: user.email, password: 'a' };
