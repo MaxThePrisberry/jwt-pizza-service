@@ -67,6 +67,9 @@ userRouter.delete(
   '/:userId',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
+    if (!req.user.isRole(Role.Admin)) {
+      throw new StatusCodeError('unable to delete a user', 403);
+    }
     res.json({ message: 'not implemented' });
   })
 );
