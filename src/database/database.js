@@ -110,6 +110,20 @@ class DB {
     }
   }
 
+  async getUsers() {
+    const connection = await this.getConnection();
+    try {
+      const users = await this.query(connection, `SELECT id, name, email FROM user LIMIT 10`);
+      const usersWithRoles = [];
+      for (const user of users) {
+        usersWithRoles.push(await this.getUserWithRoles(connection, user));
+      }
+      return [usersWithRoles, false];
+    } finally {
+      connection.end();
+    }
+  }
+
   async loginUser(userId, token) {
     token = this.getTokenSignature(token);
     const connection = await this.getConnection();
