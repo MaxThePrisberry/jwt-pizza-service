@@ -134,6 +134,14 @@ test('delete user', async () => {
   expect(meRes.status).toBe(401);
 });
 
+test('delete user with a bad or unknown id', async () => {
+  const badIdRes = await request(app).delete('/api/user/abc').set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(badIdRes.status).toBe(400);
+
+  const unknownIdRes = await request(app).delete('/api/user/999999999').set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(unknownIdRes.status).toBe(404);
+});
+
 test('update name with an apostrophe', async () => {
   const { user, authToken } = await registerUser();
   const updateReq = { name: "O'Brien", email: user.email, password: 'a' };
