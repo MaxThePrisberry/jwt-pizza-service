@@ -119,6 +119,21 @@ test('delete user without admin', async () => {
   expect(dinerRes.status).toBe(403);
 });
 
+test('delete user', async () => {
+  const { user, authToken } = await registerUser(randomName());
+  const deleteRes = await request(app).delete(`/api/user/${user.id}`).set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(deleteRes.status).toBe(200);
+
+  const listUsersRes = await request(app).get(`/api/user?name=${user.name}`).set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(listUsersRes.body.users).toEqual([]);
+
+  const loginRes = await request(app).put('/api/auth').send({ email: user.email, password: 'a' });
+  expect(loginRes.status).toBe(404);
+
+  const meRes = await request(app).get('/api/user/me').set('Authorization', `Bearer ${authToken}`);
+  expect(meRes.status).toBe(401);
+});
+
 test('update name with an apostrophe', async () => {
   const { user, authToken } = await registerUser();
   const updateReq = { name: "O'Brien", email: user.email, password: 'a' };
