@@ -98,6 +98,18 @@ test('list users by name', async () => {
   expect(listUsersRes.body).toEqual({ users: [{ id: user.id, name: user.name, email: user.email, roles: [{ role: 'diner' }] }], more: false });
 });
 
+test('list users by partial name in pages', async () => {
+  const prefix = randomName();
+  const { user: firstUser } = await registerUser(prefix + 'a');
+  const { user: secondUser } = await registerUser(prefix + 'b');
+
+  const firstPageRes = await request(app).get(`/api/user?name=${prefix}*&page=0&limit=1`).set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(firstPageRes.body).toMatchObject({ users: [{ id: firstUser.id }], more: true });
+
+  const secondPageRes = await request(app).get(`/api/user?name=${prefix}*&page=1&limit=1`).set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(secondPageRes.body).toMatchObject({ users: [{ id: secondUser.id }], more: false });
+});
+
 test('update name with an apostrophe', async () => {
   const { user, authToken } = await registerUser();
   const updateReq = { name: "O'Brien", email: user.email, password: 'a' };
