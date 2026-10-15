@@ -72,6 +72,18 @@ test('list users', async () => {
   }
 });
 
+test('list users in pages', async () => {
+  const firstPageRes = await request(app).get('/api/user?page=0&limit=1').set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(firstPageRes.status).toBe(200);
+  expect(firstPageRes.body.users.length).toBe(1);
+  expect(firstPageRes.body.more).toBe(true);
+
+  const secondPageRes = await request(app).get('/api/user?page=1&limit=1').set('Authorization', `Bearer ${adminAuthToken}`);
+  expect(secondPageRes.status).toBe(200);
+  expect(secondPageRes.body.users.length).toBe(1);
+  expect(secondPageRes.body.users[0].id).not.toBe(firstPageRes.body.users[0].id);
+});
+
 test('update name with an apostrophe', async () => {
   const { user, authToken } = await registerUser();
   const updateReq = { name: "O'Brien", email: user.email, password: 'a' };
