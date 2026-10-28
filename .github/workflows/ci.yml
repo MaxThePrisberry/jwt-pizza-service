@@ -86,3 +86,61 @@ jobs:
         with:
           name: package
           path: dist/
+  deploy:
+    needs: build
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    env:
+      version: ${{ needs.build.outputs.version }}
+    steps:
+      - name: Download Dist Artifact
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: package
+
+      - name: Write Config File
+        run: |
+          echo "module.exports = {
+            jwtSecret: '${{ secrets.JWT_SECRET }}',
+            db: {
+              connection: {
+                host: '${{ secrets.DB_HOSTNAME }}',
+                user: '${{ secrets.DB_USERNAME }}',
+                password: '${{ secrets.DB_PASSWORD }}',
+                database: 'pizza',
+                connectTimeout: 60000,
+              },
+              listPerPage: 10,
+            },
+            factory: {
+              url: 'https://pizza-factory.cs329.click',
+              apiKey: '${{ secrets.FACTORY_API_KEY }}',
+            },
+          };" > config.js
+
+      - name: Create OIDC Token to AWS
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          audience: sts.amazonaws.com
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT }}:role/${{ secrets.CI_IAM_ROLE }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set Up Machine Emulation
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set Up Docker Build
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and Push Container Image
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: 'jwt-pizza-service'
+        run: |
+          docker build --platform=linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY --push .
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:latest" >> $GITHUB_OUTPUT
