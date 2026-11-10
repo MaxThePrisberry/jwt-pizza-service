@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const config = require('../config.js');
 const { asyncHandler } = require('../endpointHelper.js');
 const { DB, Role } = require('../database/database.js');
+const metrics = require('../metrics.js');
 
 const authRouter = express.Router();
 
@@ -72,6 +73,7 @@ authRouter.post(
 // login
 authRouter.put(
   '/',
+  metrics.authTracker,
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
