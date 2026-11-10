@@ -1,9 +1,14 @@
 const config = require('./config');
 
 const requests = {};
+let requestLatency = 0;
 
 function requestTracker(req, res, next) {
+  const start = Date.now();
   requests[req.method] = (requests[req.method] || 0) + 1;
+  res.on('finish', () => {
+    requestLatency += Date.now() - start;
+  });
   next();
 }
 
@@ -14,6 +19,7 @@ function sendMetricsPeriodically(period) {
       Object.keys(requests).forEach((method) => {
         metrics.push(createMetric('requests', requests[method], '1', 'sum', 'asInt', { method }));
       });
+      metrics.push(createMetric('request_latency', requestLatency, 'ms', 'sum', 'asInt', {}));
 
       sendMetricToGrafana(metrics);
     } catch (error) {
