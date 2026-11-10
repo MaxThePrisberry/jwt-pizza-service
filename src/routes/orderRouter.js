@@ -3,6 +3,7 @@ const config = require('../config.js');
 const { Role, DB } = require('../database/database.js');
 const { authRouter } = require('./authRouter.js');
 const { asyncHandler, StatusCodeError } = require('../endpointHelper.js');
+const metrics = require('../metrics.js');
 
 const orderRouter = express.Router();
 
@@ -83,7 +84,9 @@ orderRouter.post(
     }
 
     const order = await DB.addDinerOrder(req.user, orderReq);
+    const factoryStart = Date.now();
     const factoryRes = await sendToFactory(req.user, order);
+    metrics.pizzaPurchase(factoryRes?.ok, Date.now() - factoryStart, order.items);
     if (factoryRes?.ok) {
       res.send({ order, followLinkToEndChaos: factoryRes.body.reportUrl, jwt: factoryRes.body.jwt });
     } else {
