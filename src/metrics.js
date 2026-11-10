@@ -5,6 +5,10 @@ const requests = {};
 let requestLatency = 0;
 const authAttempts = { success: 0, failure: 0 };
 const activeUsers = new Map();
+const pizzaPurchases = { success: 0, failure: 0 };
+let pizzasSold = 0;
+let revenue = 0;
+let pizzaLatency = 0;
 let lastCpuUsage = process.cpuUsage();
 let lastCpuTime = Date.now();
 
@@ -25,6 +29,17 @@ function authTracker(req, res, next) {
     authAttempts[res.statusCode === 200 ? 'success' : 'failure']++;
   });
   next();
+}
+
+function pizzaPurchase(success, latency, pizzas) {
+  pizzaLatency += latency;
+  if (success) {
+    pizzaPurchases.success++;
+    pizzasSold += pizzas.length;
+    revenue += pizzas.reduce((total, pizza) => total + pizza.price, 0);
+  } else {
+    pizzaPurchases.failure++;
+  }
 }
 
 function getCpuUsagePercentage() {
@@ -64,6 +79,13 @@ function sendMetricsPeriodically(period) {
 
       metrics.push(createMetric('cpu', getCpuUsagePercentage(), '%', 'gauge', 'asDouble', {}));
       metrics.push(createMetric('memory', getMemoryUsagePercentage(), '%', 'gauge', 'asDouble', {}));
+
+      Object.keys(pizzaPurchases).forEach((status) => {
+        metrics.push(createMetric('pizza_purchases', pizzaPurchases[status], '1', 'sum', 'asInt', { status }));
+      });
+      metrics.push(createMetric('pizzas_sold', pizzasSold, '1', 'sum', 'asInt', {}));
+      metrics.push(createMetric('revenue', revenue, '{btc}', 'sum', 'asDouble', {}));
+      metrics.push(createMetric('pizza_latency', pizzaLatency, 'ms', 'sum', 'asInt', {}));
 
       sendMetricToGrafana(metrics);
     } catch (error) {
@@ -132,4 +154,4 @@ function sendMetricToGrafana(metrics) {
     });
 }
 
-module.exports = { requestTracker, authTracker, sendMetricsPeriodically };
+module.exports = { requestTracker, authTracker, pizzaPurchase, sendMetricsPeriodically };
