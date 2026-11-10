@@ -2,12 +2,20 @@ const config = require('./config');
 
 const requests = {};
 let requestLatency = 0;
+const authAttempts = { success: 0, failure: 0 };
 
 function requestTracker(req, res, next) {
   const start = Date.now();
   requests[req.method] = (requests[req.method] || 0) + 1;
   res.on('finish', () => {
     requestLatency += Date.now() - start;
+  });
+  next();
+}
+
+function authTracker(req, res, next) {
+  res.on('finish', () => {
+    authAttempts[res.statusCode === 200 ? 'success' : 'failure']++;
   });
   next();
 }
@@ -20,6 +28,9 @@ function sendMetricsPeriodically(period) {
         metrics.push(createMetric('requests', requests[method], '1', 'sum', 'asInt', { method }));
       });
       metrics.push(createMetric('request_latency', requestLatency, 'ms', 'sum', 'asInt', {}));
+      Object.keys(authAttempts).forEach((status) => {
+        metrics.push(createMetric('auth_attempts', authAttempts[status], '1', 'sum', 'asInt', { status }));
+      });
 
       sendMetricToGrafana(metrics);
     } catch (error) {
@@ -88,4 +99,4 @@ function sendMetricToGrafana(metrics) {
     });
 }
 
-module.exports = { requestTracker, sendMetricsPeriodically };
+module.exports = { requestTracker, authTracker, sendMetricsPeriodically };
