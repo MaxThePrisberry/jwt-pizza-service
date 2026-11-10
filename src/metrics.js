@@ -1,9 +1,12 @@
+const os = require('os');
 const config = require('./config');
 
 const requests = {};
 let requestLatency = 0;
 const authAttempts = { success: 0, failure: 0 };
 const activeUsers = new Map();
+let lastCpuUsage = process.cpuUsage();
+let lastCpuTime = Date.now();
 
 function requestTracker(req, res, next) {
   const start = Date.now();
@@ -22,6 +25,21 @@ function authTracker(req, res, next) {
     authAttempts[res.statusCode === 200 ? 'success' : 'failure']++;
   });
   next();
+}
+
+function getCpuUsagePercentage() {
+  const usage = process.cpuUsage(lastCpuUsage);
+  const now = Date.now();
+  const cpuMs = (usage.user + usage.system) / 1000;
+  const cpuUsage = (cpuMs / ((now - lastCpuTime) * os.availableParallelism())) * 100;
+  lastCpuUsage = process.cpuUsage();
+  lastCpuTime = now;
+  return cpuUsage;
+}
+
+function getMemoryUsagePercentage() {
+  const memoryLimit = Math.min(process.constrainedMemory(), os.totalmem());
+  return (process.memoryUsage.rss() / memoryLimit) * 100;
 }
 
 function sendMetricsPeriodically(period) {
@@ -43,6 +61,9 @@ function sendMetricsPeriodically(period) {
         }
       });
       metrics.push(createMetric('active_users', activeUsers.size, '{users}', 'gauge', 'asInt', {}));
+
+      metrics.push(createMetric('cpu', getCpuUsagePercentage(), '%', 'gauge', 'asDouble', {}));
+      metrics.push(createMetric('memory', getMemoryUsagePercentage(), '%', 'gauge', 'asDouble', {}));
 
       sendMetricToGrafana(metrics);
     } catch (error) {
