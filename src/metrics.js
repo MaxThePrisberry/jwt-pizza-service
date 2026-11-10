@@ -3,10 +3,14 @@ const config = require('./config');
 const requests = {};
 let requestLatency = 0;
 const authAttempts = { success: 0, failure: 0 };
+const activeUsers = new Map();
 
 function requestTracker(req, res, next) {
   const start = Date.now();
   requests[req.method] = (requests[req.method] || 0) + 1;
+  if (req.user) {
+    activeUsers.set(req.user.id, start);
+  }
   res.on('finish', () => {
     requestLatency += Date.now() - start;
   });
@@ -31,6 +35,14 @@ function sendMetricsPeriodically(period) {
       Object.keys(authAttempts).forEach((status) => {
         metrics.push(createMetric('auth_attempts', authAttempts[status], '1', 'sum', 'asInt', { status }));
       });
+
+      const cutoff = Date.now() - 5 * 60 * 1000;
+      activeUsers.forEach((lastSeen, userId) => {
+        if (lastSeen < cutoff) {
+          activeUsers.delete(userId);
+        }
+      });
+      metrics.push(createMetric('active_users', activeUsers.size, '{users}', 'gauge', 'asInt', {}));
 
       sendMetricToGrafana(metrics);
     } catch (error) {
