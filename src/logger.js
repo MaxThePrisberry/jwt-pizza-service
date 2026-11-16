@@ -22,6 +22,17 @@ class Logger {
     next();
   };
 
+  errorLogger = (err, req, res, next) => {
+    if (!err.statusCode) {
+      this.exceptionLogger(err);
+    }
+    next(err);
+  };
+
+  exceptionLogger(error) {
+    return this.log('error', 'exception', { message: error?.message ?? String(error), stack: error?.stack });
+  }
+
   dbLogger(sql) {
     this.log('info', 'db', { sql });
   }
