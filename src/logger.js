@@ -22,6 +22,10 @@ class Logger {
     next();
   };
 
+  dbLogger(sql) {
+    this.log('info', 'db', { sql });
+  }
+
   log(level, type, logData) {
     const labels = { component: config.logging.source, level: level, type: type };
     const values = [this.nowString(), this.sanitize(logData)];
