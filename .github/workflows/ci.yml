@@ -55,6 +55,9 @@ jobs:
               url: 'https://pizza-factory.cs329.click',
               apiKey: '${{ secrets.FACTORY_API_KEY }}',
             },
+            logging: {
+              source: 'jwt-pizza-service-test',
+            },
           };" > src/config.js
 
       - name: Run Tests
