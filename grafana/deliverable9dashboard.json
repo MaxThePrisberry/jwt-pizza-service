@@ -217,7 +217,7 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "{component=\"jwt-pizza-service\", type=\"db\"}",
+                        "expr": "{component=\"jwt-pizza-service\", type=\"db\"} | json sql",
                         "queryType": "range"
                       }
                     },
@@ -226,35 +226,114 @@
                   }
                 }
               ],
-              "transformations": [],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "extractFields",
+                  "spec": {
+                    "options": {
+                      "delimiter": ",",
+                      "keepTime": true,
+                      "replace": true,
+                      "source": "labels"
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "component": true,
+                        "detected_level": true,
+                        "level": true,
+                        "service_name": true,
+                        "type": true
+                      },
+                      "includeByName": {},
+                      "indexByName": {
+                        "Time": 0,
+                        "sql": 1
+                      },
+                      "orderByMode": "manual",
+                      "renameByName": {}
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "sortBy",
+                  "spec": {
+                    "options": {
+                      "fields": {},
+                      "sort": [
+                        {
+                          "desc": true,
+                          "field": "Time"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
               "queryOptions": {}
             }
           },
           "vizConfig": {
             "kind": "VizConfig",
-            "group": "logs",
+            "group": "table",
             "version": "13.4.0-43142262336",
             "spec": {
               "options": {
-                "dedupStrategy": "none",
-                "enableInfiniteScrolling": false,
-                "enableLogDetails": true,
-                "prettifyLogMessage": false,
-                "showCommonLabels": false,
-                "showControls": false,
-                "showFieldSelector": false,
-                "showLabels": false,
-                "showLevel": true,
-                "showLogAttributes": true,
-                "showTime": true,
-                "sortOrder": "Descending",
-                "timestampResolution": "ms",
-                "unwrappedColumns": false,
-                "wrapLogMessage": true
+                "cellHeight": "sm",
+                "showHeader": true,
+                "showRowNumbers": false,
+                "zebraStriping": false
               },
               "fieldConfig": {
-                "defaults": {},
-                "overrides": []
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "footer": {
+                      "reducers": []
+                    },
+                    "inspect": true
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Time"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 170
+                      }
+                    ]
+                  }
+                ]
               }
             }
           }
@@ -283,7 +362,7 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "{component=\"jwt-pizza-service\", type=\"factory\"}",
+                        "expr": "{component=\"jwt-pizza-service\", type=\"factory\"} | json ok, reqBody, resBody",
                         "queryType": "range"
                       }
                     },
@@ -292,35 +371,168 @@
                   }
                 }
               ],
-              "transformations": [],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "extractFields",
+                  "spec": {
+                    "options": {
+                      "delimiter": ",",
+                      "keepTime": true,
+                      "replace": true,
+                      "source": "labels"
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "component": true,
+                        "detected_level": true,
+                        "service_name": true,
+                        "type": true
+                      },
+                      "includeByName": {},
+                      "indexByName": {
+                        "Time": 0,
+                        "level": 1,
+                        "ok": 2,
+                        "reqBody": 3,
+                        "resBody": 4
+                      },
+                      "orderByMode": "manual",
+                      "renameByName": {}
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "sortBy",
+                  "spec": {
+                    "options": {
+                      "fields": {},
+                      "sort": [
+                        {
+                          "desc": true,
+                          "field": "Time"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
               "queryOptions": {}
             }
           },
           "vizConfig": {
             "kind": "VizConfig",
-            "group": "logs",
+            "group": "table",
             "version": "13.4.0-43142262336",
             "spec": {
               "options": {
-                "dedupStrategy": "none",
-                "enableInfiniteScrolling": false,
-                "enableLogDetails": true,
-                "prettifyLogMessage": false,
-                "showCommonLabels": false,
-                "showControls": false,
-                "showFieldSelector": false,
-                "showLabels": false,
-                "showLevel": true,
-                "showLogAttributes": true,
-                "showTime": true,
-                "sortOrder": "Descending",
-                "timestampResolution": "ms",
-                "unwrappedColumns": false,
-                "wrapLogMessage": true
+                "cellHeight": "sm",
+                "showHeader": true,
+                "showRowNumbers": false,
+                "zebraStriping": false
               },
               "fieldConfig": {
-                "defaults": {},
-                "overrides": []
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "footer": {
+                      "reducers": []
+                    },
+                    "inspect": true
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Time"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 170
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "level"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 70
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "options": {
+                              "error": {
+                                "color": "red",
+                                "index": 2
+                              },
+                              "info": {
+                                "color": "green",
+                                "index": 0
+                              },
+                              "warn": {
+                                "color": "orange",
+                                "index": 1
+                              }
+                            },
+                            "type": "value"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "ok"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 60
+                      }
+                    ]
+                  }
+                ]
               }
             }
           }
@@ -349,7 +561,7 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "{component=\"jwt-pizza-service\", type=\"exception\"}",
+                        "expr": "{component=\"jwt-pizza-service\", type=\"exception\"} | json message, stack",
                         "queryType": "range"
                       }
                     },
@@ -358,35 +570,146 @@
                   }
                 }
               ],
-              "transformations": [],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "extractFields",
+                  "spec": {
+                    "options": {
+                      "delimiter": ",",
+                      "keepTime": true,
+                      "replace": true,
+                      "source": "labels"
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "component": true,
+                        "detected_level": true,
+                        "level": true,
+                        "service_name": true,
+                        "type": true
+                      },
+                      "includeByName": {},
+                      "indexByName": {
+                        "Time": 0,
+                        "message": 1,
+                        "stack": 2
+                      },
+                      "orderByMode": "manual",
+                      "renameByName": {}
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "sortBy",
+                  "spec": {
+                    "options": {
+                      "fields": {},
+                      "sort": [
+                        {
+                          "desc": true,
+                          "field": "Time"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
               "queryOptions": {}
             }
           },
           "vizConfig": {
             "kind": "VizConfig",
-            "group": "logs",
+            "group": "table",
             "version": "13.4.0-43142262336",
             "spec": {
               "options": {
-                "dedupStrategy": "none",
-                "enableInfiniteScrolling": false,
-                "enableLogDetails": true,
-                "prettifyLogMessage": false,
-                "showCommonLabels": false,
-                "showControls": false,
-                "showFieldSelector": false,
-                "showLabels": false,
-                "showLevel": true,
-                "showLogAttributes": true,
-                "showTime": true,
-                "sortOrder": "Descending",
-                "timestampResolution": "ms",
-                "unwrappedColumns": false,
-                "wrapLogMessage": true
+                "cellHeight": "sm",
+                "showHeader": true,
+                "showRowNumbers": false,
+                "zebraStriping": false
               },
               "fieldConfig": {
-                "defaults": {},
-                "overrides": []
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "footer": {
+                      "reducers": []
+                    },
+                    "inspect": true
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Time"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 170
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "message"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 260
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "stack"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "auto",
+                          "wrapText": true
+                        }
+                      },
+                      {
+                        "id": "custom.wrapText",
+                        "value": true
+                      }
+                    ]
+                  }
+                ]
               }
             }
           }
@@ -1385,8 +1708,9 @@
                         "name": "grafanacloud-logs"
                       },
                       "spec": {
+                        "direction": "backward",
                         "editorMode": "code",
-                        "expr": "{component=\"jwt-pizza-service\", type=\"http\"}",
+                        "expr": "{component=\"jwt-pizza-service\", type=\"http\"} | json authorized, method, path, statusCode, reqBody, resBody",
                         "queryType": "range"
                       }
                     },
@@ -1395,35 +1719,207 @@
                   }
                 }
               ],
-              "transformations": [],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "extractFields",
+                  "spec": {
+                    "options": {
+                      "delimiter": ",",
+                      "keepTime": true,
+                      "replace": true,
+                      "source": "labels"
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "component": true,
+                        "detected_level": true,
+                        "service_name": true,
+                        "type": true
+                      },
+                      "includeByName": {},
+                      "indexByName": {
+                        "Time": 0,
+                        "authorized": 5,
+                        "level": 1,
+                        "method": 2,
+                        "path": 4,
+                        "reqBody": 6,
+                        "resBody": 7,
+                        "statusCode": 3
+                      },
+                      "orderByMode": "manual",
+                      "renameByName": {}
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "sortBy",
+                  "spec": {
+                    "options": {
+                      "fields": {},
+                      "sort": [
+                        {
+                          "desc": true,
+                          "field": "Time"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
               "queryOptions": {}
             }
           },
           "vizConfig": {
             "kind": "VizConfig",
-            "group": "logs",
+            "group": "table",
             "version": "13.4.0-43142262336",
             "spec": {
               "options": {
-                "dedupStrategy": "none",
-                "enableInfiniteScrolling": false,
-                "enableLogDetails": true,
-                "prettifyLogMessage": false,
-                "showCommonLabels": false,
-                "showControls": false,
-                "showFieldSelector": false,
-                "showLabels": false,
-                "showLevel": true,
-                "showLogAttributes": true,
-                "showTime": true,
-                "sortOrder": "Descending",
-                "timestampResolution": "ms",
-                "unwrappedColumns": false,
-                "wrapLogMessage": true
+                "cellHeight": "sm",
+                "showHeader": true,
+                "showRowNumbers": false,
+                "zebraStriping": false
               },
               "fieldConfig": {
-                "defaults": {},
-                "overrides": []
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "footer": {
+                      "reducers": []
+                    },
+                    "inspect": true
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Time"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 170
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "level"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 70
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "options": {
+                              "error": {
+                                "color": "red",
+                                "index": 2
+                              },
+                              "info": {
+                                "color": "green",
+                                "index": 0
+                              },
+                              "warn": {
+                                "color": "orange",
+                                "index": 1
+                              }
+                            },
+                            "type": "value"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "method"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "statusCode"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 95
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "path"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 210
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "authorized"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 95
+                      }
+                    ]
+                  }
+                ]
               }
             }
           }
